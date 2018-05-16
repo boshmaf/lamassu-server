@@ -1,9 +1,16 @@
 const car = require('../lib/coinatmradar/coinatmradar')
+const plugins = require('../lib/plugins')
 
 require('../lib/settings-loader').loadLatest()
   .then(settings => {
-    return car.mapRecord({config: settings.config, rates: {BTC: {cashIn: 1000, cashOut: 1100}}})
-      .then(require('../lib/pp')('DEBUG100'))
-      .catch(console.log)
-      .then(() => process.exit())
+    const pi = plugins(settings)
+    const config = settings.config
+
+    return pi.getRates()
+      .then(rates => {
+        return car.update({rates, config})
+          .then(require('../lib/pp')('DEBUG100'))
+          .catch(console.log)
+          .then(() => process.exit())
+      })
   })
