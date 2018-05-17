@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+
+const settingsLoader = require('../lib/settings-loader')
+const wallet = require('../lib/wallet')
+const coinUtils = require('../lib/coin-utils')
+const BN = require('../lib/bn')
+
+const [toAddress, cryptoValue, cryptoCode] = process.argv.slice(2)
+
+function computeCrypto (cryptoCode, value) {
+  const cryptoRec = coinUtils.getCryptoCurrency(cryptoCode)
+  const unitScale = cryptoRec.unitScale
+
+  return BN(value).shift(unitScale)
+}
+
+const cryptoAtoms = computeCrypto(cryptoCode, cryptoValue)
+
+console.dir({toAddress, cryptoAtoms: cryptoAtoms.toString(), cryptoCode})
+
+process.exit()
+
+// TODO: ETH address validation; ask for confirmation; test
+settingsLoader.loadLatest(settings => {
+  wallet.sendCoins(settings, toAddress, cryptoAtoms, cryptoCode)
+    .then(console.log)
+    .catch(console.log)
+})
